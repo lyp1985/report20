@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>三人一字协作挑战</title>
+  <style>
+    :root {
+      --ink: #202124;
+      --muted: #667085;
+      --line: #d8dee8;
+      --paper: #f8fafc;
+      --panel: #ffffff;
+      --teal: #00897b;
+      --teal-dark: #00695c;
+      --coral: #e45543;
+      --coral-dark: #b93224;
+      --gold: #ffb020;
+      --green: #2e7d32;
+      --blue: #2f6fed;
+      --shadow: 0 16px 40px rgba(32, 33, 36, 0.12);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(248, 250, 252, 0.92), rgba(248, 250, 252, 1) 46%),
+        url("food_interaction_visual_assets/hero_table.png") center top / min(1100px, 100vw) auto no-repeat fixed;
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgba(47, 111, 237, 0.35);
+      outline-offset: 2px;
+    }
+
+    .app {
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 250px;
+      display: grid;
+      align-items: end;
+      border-radius: 18px;
+      color: white;
+      background:
+        linear-gradient(90deg, rgba(12, 29, 30, 0.88), rgba(12, 29, 30, 0.48)),
+        url("food_interaction_visual_assets/hero_table.png") center / cover no-repeat;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-inner {
+      max-width: 1180px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 34px;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 32px;
+      padding: 6px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 999px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+    }
+
+    h1 {
+      margin: 18px 0 10px;
+      font-size: clamp(34px, 5vw, 70px);
+      line-height: 1.03;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(16px, 2vw, 22px);
+      line-height: 1.65;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    main {
+      max-width: 1180px;
+      margin: -28px auto 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.8fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(216, 222, 232, 0.86);
+      border-radius: 14px;
+      box-shadow: 0 8px 26px rgba(32, 33, 36, 0.08);
+    }
+
+    .challenge {
+      padding: 24px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .field select,
+    .field input {
+      width: 100%;
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 12px;
+    }
+
+    .challenge-display {
+      display: grid;
+      gap: 16px;
+      min-height: 278px;
+      padding: 26px;
+      border-radius: 12px;
+      border: 1px solid #c7e7e0;
+      background:
+        linear-gradient(145deg, rgba(0, 137, 123, 0.12), rgba(255, 176, 32, 0.12)),
+        #ffffff;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid rgba(0, 137, 123, 0.24);
+      color: var(--teal-dark);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .prompt {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 52px);
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .slots {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(72px, 1fr));
+      gap: 10px;
+    }
+
+    .slot {
+      display: grid;
+      place-items: center;
+      min-height: 78px;
+      border-radius: 10px;
+      border: 1px dashed #b9c3d2;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .slot b {
+      display: block;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .slot span {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 0 16px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 900;
+      background: var(--teal);
+      transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(0, 137, 123, 0.22);
+      background: var(--teal-dark);
+    }
+
+    .btn.secondary {
+      color: var(--ink);
+      background: #eef3f8;
+    }
+
+    .btn.secondary:hover {
+      box-shadow: 0 8px 18px rgba(32, 33, 36, 0.1);
+      background: #e4ebf3;
+    }
+
+    .btn.warn {
+      background: var(--coral);
+    }
+
+    .btn.warn:hover {
+      background: var(--coral-dark);
+      box-shadow: 0 8px 18px rgba(228, 85, 67, 0.22);
+    }
+
+    .side {
+      display: grid;
+      gap: 18px;
+    }
+
+    .timer-panel,
+    .score-panel,
+    .bank-panel,
+    .rules-panel {
+      padding: 18px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .timer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .time {
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(42px, 6vw, 64px);
+      line-height: 1;
+      font-weight: 950;
+      color: var(--coral);
+    }
+
+    .mini-actions {
+      display: grid;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      color: var(--ink);
+      background: #eef3f8;
+      font-weight: 950;
+    }
+
+    .icon-btn:hover {
+      background: #e4ebf3;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .team {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .team:first-child {
+      border-color: rgba(0, 137, 123, 0.34);
+    }
+
+    .team:last-child {
+      border-color: rgba(228, 85, 67, 0.32);
+    }
+
+    .team h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .team-name {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0 10px;
+      color: var(--ink);
+      background: #fff;
+      font-weight: 900;
+    }
+
+    .score {
+      font-size: 46px;
+      line-height: 1;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .score-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .score-actions button {
+      min-height: 36px;
+      border-radius: 9px;
+      background: #eef3f8;
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .winner {
+      min-height: 44px;
+      margin-top: 14px;
+      padding: 11px 12px;
+      border-radius: 10px;
+      background: rgba(255, 176, 32, 0.16);
+      color: #6d4a00;
+      font-weight: 800;
+      line-height: 1.55;
+    }
+
+    .bank-list {
+      display: grid;
+      gap: 10px;
+      max-height: 320px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .bank-item {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 10px;
+      align-items: center;
+      min-height: 50px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .bank-item strong {
+      display: inline-grid;
+      place-items: center;
+      min-height: 30px;
+      border-radius: 999px;
+      background: rgba(47, 111, 237, 0.1);
+      color: var(--blue);
+      font-size: 13px;
+    }
+
+    .bank-item span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .rules {
+      margin: 0;
+      padding-left: 19px;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .custom-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 126px;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .custom-row input {
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0 12px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 20;
+      transform: translateX(-50%) translateY(90px);
+      max-width: min(520px, calc(100vw - 32px));
+      padding: 13px 16px;
+      border-radius: 12px;
+      color: white;
+      background: rgba(32, 33, 36, 0.92);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transition: transform 0.24s ease, opacity 0.24s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 920px) {
+      .app {
+        padding: 14px;
+      }
+
+      .hero {
+        min-height: 230px;
+        border-radius: 14px;
+      }
+
+      .hero-inner {
+        padding: 24px;
+      }
+
+      main {
+        margin-top: 14px;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .toolbar,
+      .score-grid,
+      .custom-row {
+        grid-template-columns: 1fr;
+      }
+
+      .challenge,
+      .challenge-display,
+      .timer-panel,
+      .score-panel,
+      .bank-panel,
+      .rules-panel {
+        padding: 16px;
+      }
+
+      .actions .btn {
+        width: 100%;
+      }
+
+      .timer {
+        grid-template-columns: 1fr;
+      }
+
+      .mini-actions {
+        grid-template-columns: repeat(3, 42px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-inner">
+        <div class="kicker">课堂协作游戏 · 两组三人 · 一人一字</div>
+        <h1 id="page-title">三人一字协作挑战</h1>
+        <p>主持人给出类别，答案必须是三个字；每组三名同学按顺序每人说一个字，合力完成答案。</p>
+      </div>
+    </section>
+
+    <main>
+      <div class="layout">
+        <section class="panel challenge" aria-label="出题控制台">
+          <div class="toolbar">
+            <div class="field">
+              <label for="category">题目类别</label>
+              <select id="category"></select>
+            </div>
+            <div class="field">
+              <label for="answerTime">答题时间</label>
+              <select id="answerTime">
+                <option value="15">15 秒</option>
+                <option value="20" selected>20 秒</option>
+                <option value="30">30 秒</option>
+                <option value="45">45 秒</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="challenge-display" aria-live="polite">
+            <div class="meta">
+              <span class="pill" id="categoryPill">食物</span>
+              <span class="pill" id="countPill">固定 3 个字</span>
+              <span class="pill" id="roundPill">第 1 题</span>
+            </div>
+            <p class="prompt" id="promptText">请说出一个三个字的食物名字</p>
+            <div class="slots" id="slots" aria-label="发言顺序"></div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" id="randomBtn" type="button">随机出题</button>
+            <button class="btn secondary" id="answerBtn" type="button">开始答题</button>
+            <button class="btn warn" id="resetRoundBtn" type="button">重置本轮</button>
+          </div>
+
+          <div class="custom-row">
+            <input id="customPrompt" type="text" placeholder="自定义类别或题目，例如：景点、品牌、请说出一个三个字的专业">
+            <button class="btn secondary" id="customBtn" type="button">使用题目</button>
+          </div>
+        </section>
+
+        <aside class="side">
+          <section class="panel timer-panel" aria-label="计时器">
+            <div class="panel-title">
+              <h2>课堂计时</h2>
+              <span class="pill" id="timerLabel">待开始</span>
+            </div>
+            <div class="timer">
+              <div class="time" id="timeDisplay">00:20</div>
+              <div class="mini-actions">
+                <button class="icon-btn" id="pauseBtn" type="button" title="暂停或继续">Ⅱ</button>
+                <button class="icon-btn" id="plusBtn" type="button" title="增加 5 秒">+5</button>
+                <button class="icon-btn" id="clearTimerBtn" type="button" title="清空计时">×</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel score-panel" aria-label="两组计分">
+            <div class="panel-title">
+              <h2>团队得分</h2>
+              <button class="icon-btn" id="resetScoreBtn" type="button" title="清空两组得分">清</button>
+            </div>
+            <div class="score-grid">
+              <div class="team">
+                <input class="team-name" id="teamNameA" type="text" value="第一组" aria-label="第一组名称">
+                <div class="score" id="scoreA">0</div>
+                <div class="score-actions">
+                  <button type="button" data-team="A" data-delta="1">+1</button>
+                  <button type="button" data-team="A" data-delta="2">+2</button>
+                  <button type="button" data-team="A" data-delta="-1">-1</button>
+                </div>
+              </div>
+              <div class="team">
+                <input class="team-name" id="teamNameB" type="text" value="第二组" aria-label="第二组名称">
+                <div class="score" id="scoreB">0</div>
+                <div class="score-actions">
+                  <button type="button" data-team="B" data-delta="1">+1</button>
+                  <button type="button" data-team="B" data-delta="2">+2</button>
+                  <button type="button" data-team="B" data-delta="-1">-1</button>
+                </div>
+              </div>
+            </div>
+            <div class="winner" id="winnerText">最终高分组获得 4 倍平时分，另一组获得 2 倍平时分。</div>
+          </section>
+
+          <section class="panel bank-panel" aria-label="题目类别">
+            <div class="panel-title">
+              <h2>题目类别</h2>
+              <span class="pill" id="bankCount">0 类</span>
+            </div>
+            <div class="bank-list" id="bankList"></div>
+          </section>
+
+          <section class="panel rules-panel" aria-label="规则说明">
+            <div class="panel-title">
+              <h2>判分建议</h2>
+            </div>
+            <ol class="rules">
+              <li>每组 3 人，固定顺序发言，每人只说一个字。</li>
+              <li>所有答案必须正好 3 个字，主持人不提供提示答案。</li>
+              <li>答案真实存在、类别正确、三人顺序清楚，各得 1 分。</li>
+              <li>衔接自然、无明显停顿、团队补位好，可额外加 1 到 2 分。</li>
+              <li>抢答、提示、临时商量或超过字数，由老师酌情扣分。</li>
+            </ol>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const categoryOptions = [
+      { name: "食物", prompt: "请说出一个三个字的食物名字" },
+      { name: "人物", prompt: "请说出一个三个字的人物名字" },
+      { name: "歌名", prompt: "请说出一首三个字的歌名" },
+      { name: "城市", prompt: "请说出一个三个字的城市名字" },
+      { name: "电影", prompt: "请说出一部三个字的电影名字" },
+      { name: "运动", prompt: "请说出一个三个字的运动项目" },
+      { name: "景点", prompt: "请说出一个三个字的景点名字" },
+      { name: "品牌", prompt: "请说出一个三个字的品牌名字" },
+      { name: "专业", prompt: "请说出一个三个字的大学专业" },
+      { name: "角色", prompt: "请说出一个三个字的角色名字" }
+    ];
+
+    const category = document.querySelector("#category");
+    const categoryPill = document.querySelector("#categoryPill");
+    const countPill = document.querySelector("#countPill");
+    const roundPill = document.querySelector("#roundPill");
+    const promptText = document.querySelector("#promptText");
+    const slots = document.querySelector("#slots");
+    const bankList = document.querySelector("#bankList");
+    const bankCount = document.querySelector("#bankCount");
+    const timeDisplay = document.querySelector("#timeDisplay");
+    const timerLabel = document.querySelector("#timerLabel");
+    const teamNameA = document.querySelector("#teamNameA");
+    const teamNameB = document.querySelector("#teamNameB");
+    const scoreA = document.querySelector("#scoreA");
+    const scoreB = document.querySelector("#scoreB");
+    const winnerText = document.querySelector("#winnerText");
+    const toast = document.querySelector("#toast");
+
+    let round = 1;
+    let timer = null;
+    let secondsLeft = 20;
+    let paused = false;
+    let scores = { A: 0, B: 0 };
+    const speakers = ["甲", "乙", "丙"];
+    const fixedCount = 3;
+
+    function init() {
+      categoryOptions.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.name;
+        option.textContent = item.name;
+        category.appendChild(option);
+      });
+
+      category.value = "食物";
+      updateChallenge();
+      renderCategoryList();
+      bindEvents();
+      updateTimerDisplay();
+      updateScores();
+    }
+
+    function bindEvents() {
+      category.addEventListener("change", updateChallenge);
+      document.querySelector("#randomBtn").addEventListener("click", randomChallenge);
+      document.querySelector("#answerBtn").addEventListener("click", () => startTimer(Number(document.querySelector("#answerTime").value), "答题"));
+      document.querySelector("#resetRoundBtn").addEventListener("click", () => {
+        clearTimer();
+        round = 1;
+        updateChallenge();
+        showToast("已重置本轮题目。");
+      });
+      document.querySelector("#pauseBtn").addEventListener("click", togglePause);
+      document.querySelector("#plusBtn").addEventListener("click", () => {
+        secondsLeft += 5;
+        updateTimerDisplay();
+      });
+      document.querySelector("#clearTimerBtn").addEventListener("click", clearTimer);
+      document.querySelector("#resetScoreBtn").addEventListener("click", () => {
+        scores = { A: 0, B: 0 };
+        updateScores();
+      });
+      document.querySelector("#customBtn").addEventListener("click", useCustomPrompt);
+      teamNameA.addEventListener("input", updateScores);
+      teamNameB.addEventListener("input", updateScores);
+      document.querySelectorAll("[data-team]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const team = button.dataset.team;
+          const delta = Number(button.dataset.delta);
+          scores[team] = Math.max(0, scores[team] + delta);
+          updateScores();
+        });
+      });
+    }
+
+    function randomChallenge() {
+      const next = categoryOptions[Math.floor(Math.random() * categoryOptions.length)];
+      category.value = next.name;
+      round += 1;
+      updateChallenge();
+      showToast("新题目已生成，可以开始答题。");
+    }
+
+    function updateChallenge() {
+      const selected = categoryOptions.find((item) => item.name === category.value) || categoryOptions[0];
+      categoryPill.textContent = selected.name;
+      countPill.textContent = `固定 ${fixedCount} 个字`;
+      roundPill.textContent = `第 ${round} 题`;
+      promptText.textContent = selected.prompt;
+      renderSlots();
+    }
+
+    function renderSlots() {
+      slots.innerHTML = "";
+      for (let index = 0; index < fixedCount; index += 1) {
+        const slot = document.createElement("div");
+        slot.className = "slot";
+        slot.innerHTML = `<b>${index + 1}</b><span>${speakers[index % 3]}同学</span>`;
+        slots.appendChild(slot);
+      }
+    }
+
+    function renderCategoryList() {
+      bankList.innerHTML = "";
+      categoryOptions.forEach((option, index) => {
+        const row = document.createElement("div");
+        row.className = "bank-item";
+        row.innerHTML = `<strong>${index + 1}</strong><span>${option.prompt}</span>`;
+        bankList.appendChild(row);
+      });
+      bankCount.textContent = `${categoryOptions.length} 类`;
+    }
+
+    function startTimer(total, label) {
+      clearInterval(timer);
+      secondsLeft = total;
+      paused = false;
+      timerLabel.textContent = label;
+      updateTimerDisplay();
+      timer = setInterval(() => {
+        if (paused) return;
+        secondsLeft -= 1;
+        updateTimerDisplay();
+        if (secondsLeft <= 0) {
+          clearInterval(timer);
+          timer = null;
+          timerLabel.textContent = `${label}结束`;
+          showToast(`${label}时间到。`);
+        }
+      }, 1000);
+    }
+
+    function togglePause() {
+      if (!timer) return;
+      paused = !paused;
+      timerLabel.textContent = paused ? "暂停中" : "进行中";
+    }
+
+    function clearTimer() {
+      clearInterval(timer);
+      timer = null;
+      paused = false;
+      secondsLeft = Number(document.querySelector("#answerTime").value);
+      timerLabel.textContent = "待开始";
+      updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+      const safeSeconds = Math.max(0, secondsLeft);
+      const minutes = String(Math.floor(safeSeconds / 60)).padStart(2, "0");
+      const seconds = String(safeSeconds % 60).padStart(2, "0");
+      timeDisplay.textContent = `${minutes}:${seconds}`;
+    }
+
+    function updateScores() {
+      scoreA.textContent = scores.A;
+      scoreB.textContent = scores.B;
+      const nameA = teamNameA.value.trim() || "第一组";
+      const nameB = teamNameB.value.trim() || "第二组";
+
+      if (scores.A === scores.B) {
+        winnerText.textContent = "当前平分。可以加赛一题，胜出组获得 4 倍平时分。";
+      } else if (scores.A > scores.B) {
+        winnerText.textContent = `${nameA}暂时领先：${nameA} 4 倍平时分，${nameB} 2 倍平时分。`;
+      } else {
+        winnerText.textContent = `${nameB}暂时领先：${nameB} 4 倍平时分，${nameA} 2 倍平时分。`;
+      }
+    }
+
+    function useCustomPrompt() {
+      const input = document.querySelector("#customPrompt");
+      const value = input.value.trim();
+      if (!value) {
+        showToast("请先输入自定义题目。");
+        return;
+      }
+
+      round += 1;
+      categoryPill.textContent = value.includes("说出") ? "自定义" : value;
+      countPill.textContent = `固定 ${fixedCount} 个字`;
+      roundPill.textContent = `第 ${round} 题`;
+      promptText.textContent = formatCustomPrompt(value);
+      renderSlots();
+      showToast("已使用自定义题目。");
+    }
+
+    function formatCustomPrompt(value) {
+      if (value.includes("说出")) {
+        return value.includes("三个字") || value.includes("3个字") || value.includes("3 个字")
+          ? value
+          : `${value}，答案必须是三个字`;
+      }
+
+      return `请说出一个三个字的${value}`;
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2200);
+    }
+
+    init();
+  </script>
+</body>
+</html>
